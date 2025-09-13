@@ -1,133 +1,132 @@
-# 🗺️ Умный навигатор по Бишкеку
+# 🗺️ Bishkek Smart Navigator
 
-Это проект предиктивного навигатора для города Бишкек, который строит оптимальные маршруты с учетом прогнозируемого времени в пути. Время проезда по каждому участку дороги предсказывается с помощью модели машинного обучения (CatBoost), обученной на симулированных данных о трафике.
+This is a predictive navigator project for the city of Bishkek that calculates optimal routes based on predicted travel times. The travel time for each road segment is predicted using a CatBoost machine learning model trained on simulated traffic data.
 
-[![Hugging Face Spaces](https://huggingface.co/spaces/ErzhanAb/Optimal-Routes-with-graphs)](<!-- ВСТАВЬТЕ СЮДА ВАШУ ССЫЛКУ НА HUGGING FACE SPACES -->)
+[![Hugging Face Spaces](https://huggingface.co/spaces/ErzhanAb/Optimal-Routes-with-graphs)](https://huggingface.co/spaces/ErzhanAb/Optimal-Routes-with-graphs)
 
+## 🚀 Key Features
 
-## 🚀 Ключевые особенности
+-   **Machine Learning for Traffic Prediction**: Utilizes a `CatBoostRegressor` model to estimate travel time based on the day of the week, time of day, road type, number of lanes, and density of Points of Interest (POI).
+-   **Geo-Data Enrichment**: The road graph from OpenStreetMap is enriched with data on traffic light locations and POIs (cafes, offices, schools) for more accurate modeling.
+-   **Alternative Route Generation**: The application finds not only the fastest route but also a viable alternative.
+-   **Interactive Web Interface**: The user interface is built with Gradio, allowing for easy input of addresses and selection of travel times.
+-   **Optimized for Fast Startup**: All resource-intensive operations for loading and processing the city map are pre-computed and saved to a single file, ensuring a near-instant application launch.
 
--   **Машинное обучение для предсказания трафика**: Используется модель `CatBoostRegressor` для оценки времени проезда на основе дня недели, времени суток, типа дороги, количества полос и плотности точек интереса (POI).
--   **Обогащение геоданных**: Дорожный граф из OpenStreetMap обогащается данными о расположении светофоров и POI (кафе, офисы, школы) для более точного моделирования.
--   **Построение альтернативных маршрутов**: Приложение находит не только самый быстрый маршрут, но и хороший альтернативный вариант.
--   **Интерактивный веб-интерфейс**: Пользовательский интерфейс создан с помощью Gradio, что позволяет легко вводить адреса и выбирать время поездки.
--   **Оптимизация для быстрого запуска**: Все ресурсоемкие операции по загрузке и обработке карты города выполнены заранее и сохранены в один файл, что обеспечивает почти мгновенный запуск приложения.
+## ⚙️ How It Works: Project Architecture
 
-## ⚙️ Как это работает: Архитектура проекта
+The project consists of two main stages: data pre-processing (performed once) and the web application's operation (runs on every launch).
 
-Проект состоит из двух основных этапов: предобработка данных (выполняется один раз) и работа веб-приложения (выполняется при каждом запуске).
+### 1. Offline Pre-processing Stage
 
-### 1. Этап предобработки (Offline)
+This stage was completed in a Google Colab environment to prepare the data that the application would use.
 
-Этот этап был выполнен в среде Google Colab для подготовки данных, которые будут использоваться приложением.
-
-1.  **Сбор данных**: С помощью библиотеки `OSMnx` из OpenStreetMap были загружены:
-    -   Дорожный граф Бишкека (`network_type='drive'`).
-    -   Координаты всех светофоров (`highway='traffic_signals'`).
-    -   Координаты точек интереса (POI), таких как кафе, магазины, банки и т.д.
+1.  **Data Collection**: Using the `OSMnx` library, the following were downloaded from OpenStreetMap:
+    -   The road graph for Bishkek (`network_type='drive'`).
+    -   Coordinates of all traffic lights (`highway='traffic_signals'`).
+    -   Coordinates of Points of Interest (POIs) such as cafes, shops, banks, etc.
 2.  **Feature Engineering**:
-    -   Базовые атрибуты дорог (скоростной лимит, кол-во полос) были очищены и заполнены пропуски.
-    -   Для каждого участка дороги была рассчитана новая фича — **плотность POI** (количество точек интереса в радиусе 50 метров).
-    -   Светофоры были привязаны к ближайшим узлам графа.
-3.  **Симуляция данных о трафике**: Поскольку реальных исторических данных о трафике не было, была написана функция-симулятор, которая генерирует реалистичное время проезда в зависимости от множества факторов:
-    -   **Время суток**: Утренние и вечерние часы-пик.
-    -   **День недели**: Различия между буднями и выходными.
-    -   **Характеристики дороги**: Тип (главная, второстепенная), скоростной лимит, длина.
-    -   **Плотность POI**: Улицы с большим количеством заведений считаются более загруженными.
-4.  **Обучение модели**:
-    -   На сгенерированном датасете была обучена модель `CatBoostRegressor`.
-    -   Целевая переменная (target): `travel_time` (время проезда).
-    -   Фичи (features): `hour`, `day_of_week`, `length`, `maxspeed`, `lanes`, `poi_count`, `highway_type`.
-5.  **Сохранение артефактов**:
-    -   Обученная модель была сохранена в файл `bishkek_traffic_model.cbm`.
-    -   Обработанный граф, данные о дорогах и светофорах были сохранены в один файл `graph_data.pkl` с помощью `pickle`.
+    -   Basic road attributes (speed limit, number of lanes) were cleaned, and missing values were filled.
+    -   A new feature was calculated for each road segment: **POI density** (the number of points of interest within a 50-meter radius).
+    -   Traffic lights were mapped to the nearest nodes in the graph.
+3.  **Traffic Data Simulation**: Since real historical traffic data was unavailable, a simulator function was written to generate realistic travel times based on multiple factors:
+    -   **Time of Day**: Morning and evening rush hours.
+    -   **Day of the Week**: Differences between weekdays and weekends.
+    -   **Road Characteristics**: Type (primary, secondary), speed limit, length.
+    -   **POI Density**: Streets with more establishments are considered more congested.
+4.  **Model Training**:
+    -   A `CatBoostRegressor` model was trained on the generated dataset.
+    -   Target variable: `travel_time`.
+    -   Features: `hour`, `day_of_week`, `length`, `maxspeed`, `lanes`, `poi_count`, `highway_type`.
+5.  **Saving Artifacts**:
+    -   The trained model was saved to the file `bishkek_traffic_model.cbm`.
+    -   The processed graph, road data, and traffic light information were saved into a single `graph_data.pkl` file using `pickle`.
 
-### 2. Веб-приложение (Online)
+### 2. Online Web Application
 
-Основной файл `app.py`, который разворачивается на Hugging Face Spaces.
+The main `app.py` file, which is deployed on Hugging Face Spaces.
 
-1.  **Запуск**: Приложение мгновенно загружает подготовленные файлы `graph_data.pkl` и `bishkek_traffic_model.cbm`.
-2.  **Ввод пользователя**: Пользователь вводит адрес отправления/назначения и выбирает время поездки через интерфейс Gradio.
-3.  **Геокодирование**: Адреса преобразуются в географические координаты (широту и долготу) с помощью `geopy`.
-4.  **Предсказание в реальном времени**:
-    -   На основе выбранного пользователем времени, модель предсказывает время проезда (`travel_time`) для **каждого** участка дороги в городе.
-    -   Эти предсказанные значения устанавливаются как "веса" ребер в дорожном графе.
-5.  **Поиск маршрута**: С помощью библиотеки `networkx` на утяжеленном графе ищется кратчайший путь (алгоритм Дейкстры) от начального до конечного узла.
-6.  **Визуализация**: Найденные маршруты отрисовываются на интерактивной карте `folium`, которая вместе с информацией о времени и расстоянии отображается пользователю.
+1.  **Startup**: The application instantly loads the pre-processed files `graph_data.pkl` and `bishkek_traffic_model.cbm`.
+2.  **User Input**: The user enters departure/destination addresses and selects a travel time via the Gradio interface.
+3.  **Geocoding**: Addresses are converted into geographic coordinates (latitude and longitude) using `geopy`.
+4.  **Real-time Prediction**:
+    -   Based on the user-selected time, the model predicts the `travel_time` for **every** road segment in the city.
+    -   These predicted values are set as the "weights" for the edges in the road graph.
+5.  **Route Finding**: Using the `networkx` library, the shortest path (Dijkstra's algorithm) is found on the weighted graph from the start node to the end node.
+6.  **Visualization**: The found routes are drawn on an interactive `folium` map, which is displayed to the user along with information about travel time and distance.
 
-## 📁 Структура репозитория
+## 📁 Repository Structure
 
-*   🐍 `app.py` - Основной код веб-приложения на Gradio.
-*   📊 `bishkek_traffic_model.cbm` - Обученная модель CatBoost.
-*   🏙️ `graph_data.pkl` - Предобработанные данные о графе города (дороги, POI, светофоры).
-*   M `README.md` - Этот файл с описанием проекта.
-*   📋 `requirements.txt` - Список зависимостей Python для установки.
+*   🐍 `app.py` - The main Gradio web application code.
+*   📊 `bishkek_traffic_model.cbm` - The trained CatBoost model.
+*   🏙️ `graph_data.pkl` - Pre-processed city graph data (roads, POIs, traffic lights).
+*   M `README.md` - This project description file.
+*   📋 `requirements.txt` - A list of Python dependencies to install.
 
-## 🛠️ Запуск и развертывание
+## 🛠️ Setup and Deployment
 
-### Вариант 1: Локальный запуск (на своем компьютере)
+### Option 1: Local Setup (On Your Computer)
 
-Этот способ позволяет запустить приложение на вашем компьютере без необходимости регистрации где-либо.
+This method allows you to run the application on your own machine without needing to register for any services.
 
-1.  **Скачайте файлы проекта**
-    -   Нажмите на зеленую кнопку `<> Code` вверху этого репозитория.
-    -   В выпадающем меню выберите `Download ZIP`.
+1.  **Download the Project Files**
+    -   Click the green `<> Code` button at the top of this repository.
+    -   Select `Download ZIP` from the dropdown menu.
 
-2.  **Распакуйте архив**
-    -   Распакуйте скачанный ZIP-архив в любую удобную для вас папку.
+2.  **Unzip the Archive**
+    -   Extract the downloaded ZIP archive to a convenient folder.
 
-3.  **Установите зависимости**
-    -   Убедитесь, что у вас установлен Python (версии 3.8 или новее).
-    -   Откройте терминал (командную строку) и перейдите в папку с проектом.
-    -   Рекомендуется создать виртуальное окружение:
+3.  **Install Dependencies**
+    -   Ensure you have Python installed (version 3.8 or newer).
+    -   Open a terminal (command prompt) and navigate to the project folder.
+    -   It is recommended to create a virtual environment:
         ```bash
-        # Создаем окружение
+        # Create the environment
         python -m venv venv
-        # Активируем его (для Windows)
+        # Activate it (for Windows)
         venv\Scripts\activate
-        # Активируем его (для MacOS/Linux)
+        # Activate it (for MacOS/Linux)
         source venv/bin/activate
         ```
-    -   Установите все необходимые библиотеки одной командой:
+    -   Install all required libraries with a single command:
         ```bash
         pip install -r requirements.txt
         ```
 
-4.  **Запустите приложение**
-    -   В том же терминале выполните команду:
+4.  **Run the Application**
+    -   In the same terminal, execute the command:
         ```bash
         python app.py
         ```
 
-5.  **Готово!**
-    -   В терминале появится ссылка, обычно `http://127.0.0.1:7860`. Откройте ее в вашем браузере, чтобы увидеть работающий навигатор.
+5.  **Done!**
+    -   A link will appear in the terminal, usually `http://127.0.0.1:7860`. Open it in your web browser to see the navigator in action.
 
-### Вариант 2: Развертывание на Hugging Face Spaces (в облаке)
+### Option 2: Cloud Deployment on Hugging Face Spaces
 
-Этот способ позволяет опубликовать ваше приложение в интернете.
+This method allows you to publish your application on the internet.
 
-1.  **Создайте новое "пространство" (Space)**
-    -   Зарегистрируйтесь или войдите в свой аккаунт на [Hugging Face](https://huggingface.co/).
-    -   Нажмите **New Space**.
-    -   **SDK**: выберите **Gradio**.
-    -   **Hardware**: оставьте `CPU basic` (бесплатный).
-    -   Нажмите **Create Space**.
+1.  **Create a new Space**
+    -   Register or log in to your account on [Hugging Face](https://huggingface.co/).
+    -   Click **New Space**.
+    -   **SDK**: Select **Gradio**.
+    -   **Hardware**: Leave it as `CPU basic` (free).
+    -   Click **Create Space**.
 
-2.  **Загрузите файлы**
-    -   На странице вашего нового Space перейдите во вкладку `Files`.
-    -   Нажмите `Add file` -> `Upload files`.
-    -   Перетащите в появившееся окно все файлы проекта из папки на вашем компьютере: `app.py`, `requirements.txt`, `graph_data.pkl` и `bishkek_traffic_model.cbm`.
-    -   Нажмите **Commit changes to main**.
+2.  **Upload the Files**
+    -   On your new Space's page, go to the `Files` tab.
+    -   Click `Add file` -> `Upload files`.
+    -   Drag and drop all the project files from your computer into the upload window: `app.py`, `requirements.txt`, `graph_data.pkl`, and `bishkek_traffic_model.cbm`.
+    -   Click **Commit changes to main**.
 
-3.  **Готово!**
-    -   Hugging Face автоматически начнет сборку (`Building`), которая может занять 5-10 минут.
-    -   Когда статус сменится на `Running`, ваше приложение будет доступно по публичной ссылке.
+3.  **Done!**
+    -   Hugging Face will automatically start building the application (`Building`), which may take 5-10 minutes.
+    -   Once the status changes to `Running`, your application will be available at a public link.
 
-## 🔮 Возможные улучшения
+## 🔮 Potential Improvements
 
--   **Использование реальных данных о трафике** вместо симулированных (например, через API Яндекс.Пробок или 2ГИС, если доступно).
--   **Добавление новых фичей** для модели, таких как погодные условия, праздничные дни, дорожные работы.
--   **Кэширование** геокодированных адресов для ускорения повторных запросов.
--   **Расширение на другие города**: создание универсального скрипта для предобработки, который может подготовить данные для любого города.
+-   **Using real traffic data** instead of simulated data (e.g., via APIs from services like Yandex.Maps or 2GIS, if available).
+-   **Adding new features** to the model, such as weather conditions, public holidays, and road work.
+-   **Caching** geocoded addresses to speed up repeated requests.
+-   **Expanding to other cities**: creating a universal pre-processing script that can prepare data for any city.
 
 ---
