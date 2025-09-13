@@ -1,10 +1,10 @@
-# 🗺️ Bishkek Smart Navigator
+# Bishkek Smart Navigator
 
 This is a predictive navigator project for the city of Bishkek that calculates optimal routes based on predicted travel times. The travel time for each road segment is predicted using a CatBoost machine learning model trained on simulated traffic data.
 
-[![Hugging Face Spaces](https://huggingface.co/spaces/ErzhanAb/Optimal-Routes-with-graphs)](https://huggingface.co/spaces/ErzhanAb/Optimal-Routes-with-graphs)
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/ErzhanAb/Optimal-Routes-with-graphs)
 
-## 🚀 Key Features
+## Key Features
 
 -   **Machine Learning for Traffic Prediction**: Utilizes a `CatBoostRegressor` model to estimate travel time based on the day of the week, time of day, road type, number of lanes, and density of Points of Interest (POI).
 -   **Geo-Data Enrichment**: The road graph from OpenStreetMap is enriched with data on traffic light locations and POIs (cafes, offices, schools) for more accurate modeling.
@@ -12,7 +12,7 @@ This is a predictive navigator project for the city of Bishkek that calculates o
 -   **Interactive Web Interface**: The user interface is built with Gradio, allowing for easy input of addresses and selection of travel times.
 -   **Optimized for Fast Startup**: All resource-intensive operations for loading and processing the city map are pre-computed and saved to a single file, ensuring a near-instant application launch.
 
-## ⚙️ How It Works: Project Architecture
+## How It Works: Project Architecture
 
 The project consists of two main stages: data pre-processing (performed once) and the web application's operation (runs on every launch).
 
@@ -54,15 +54,15 @@ The main `app.py` file, which is deployed on Hugging Face Spaces.
 5.  **Route Finding**: Using the `networkx` library, the shortest path (Dijkstra's algorithm) is found on the weighted graph from the start node to the end node.
 6.  **Visualization**: The found routes are drawn on an interactive `folium` map, which is displayed to the user along with information about travel time and distance.
 
-## 📁 Repository Structure
+## Repository Structure
 
-*   🐍 `app.py` - The main Gradio web application code.
-*   📊 `bishkek_traffic_model.cbm` - The trained CatBoost model.
-*   🏙️ `graph_data.pkl` - Pre-processed city graph data (roads, POIs, traffic lights).
-*   M `README.md` - This project description file.
-*   📋 `requirements.txt` - A list of Python dependencies to install.
+*  `app.py` - The main Gradio web application code.
+*  `bishkek_traffic_model.cbm` - The trained CatBoost model.
+*  `graph_data.pkl` - Pre-processed city graph data (roads, POIs, traffic lights).
+*  `README.md` - This project description file.
+*  `requirements.txt` - A list of Python dependencies to install.
 
-## 🛠️ Setup and Deployment
+## Setup and Deployment
 
 ### Option 1: Local Setup (On Your Computer)
 
@@ -122,7 +122,7 @@ This method allows you to publish your application on the internet.
     -   Hugging Face will automatically start building the application (`Building`), which may take 5-10 minutes.
     -   Once the status changes to `Running`, your application will be available at a public link.
 
-## 🔮 Potential Improvements
+## Potential Improvements
 
 -   **Using real traffic data** instead of simulated data (e.g., via APIs from services like Yandex.Maps or 2GIS, if available).
 -   **Adding new features** to the model, such as weather conditions, public holidays, and road work.
