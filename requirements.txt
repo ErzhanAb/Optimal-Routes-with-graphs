@@ -1,0 +1,10 @@
+osmnx
+geopandas
+catboost
+folium
+gradio>=4.0
+geopy
+networkx
+numpy
+pandas
+scikit-learn
